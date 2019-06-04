@@ -1,5 +1,8 @@
 package com.ranjay.cassandra.models;
 
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,6 +27,16 @@ public class EventData{
     private int status;
     private String ts;
     private String userId;
+
+    public BoundStatement createBoundStatement(PreparedStatement statement){
+        BoundStatement bound = statement.bind(this.getArtist(),this.getAuth(),this.getFirstName()
+                                ,this.getGender(),this.getItemInSession(),this.getLastName(),
+                                this.getLength(),this.getLevel(),this.getLocation(),
+                                this.getMethod(),this.getPage(),this.getRegistration(),
+                                this.getSessionId(),this.getSong(),this.getStatus(),
+                                this.getTs(),this.getUserId());
+        return bound;
+    }
 
     @Override
     public String toString() {

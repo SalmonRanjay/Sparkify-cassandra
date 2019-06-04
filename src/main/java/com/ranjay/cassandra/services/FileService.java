@@ -22,55 +22,51 @@ public final class FileService {
     private FileService() {
     };
 
+   
+
     public static Stream<EventData> readCSVFile(File rootDir) {
-
-        return FileUtils.listFiles(rootDir, null, true).stream().map(new Function<File, List<EventData>>() {
-
-            @Override
-            public List<EventData> apply(File t) {
-                List<EventData> events = new  ArrayList<>();
-                try (Reader in = new FileReader(t);) {
-                   
-                    Iterable<CSVRecord> records = CSVFormat.EXCEL.withHeader().parse(in);
-                    for (CSVRecord record : records) {
-                       
-                       
-                        EventData event = new EventBuilder(Integer.parseInt(record.get("sessionId")))
-                            .withArtist(record.get("artist"))
-                            .withAuth(record.get("auth"))
-                            .withFirstName(record.get("firstName"))
-                            .withItemInSession(Integer.parseInt(
-                                        !record.get("itemInSession").isEmpty() ? record.get("itemInSession") : "0"))
-                            .withGender(
-                                !record.get("gender").isEmpty() ? record.get("gender").charAt(0) : '-'
-                            )
-                            .withLastName(record.get("lastName"))
-                            .withLength(Double.parseDouble(
-                                        !record.get("length").isEmpty() ? record.get("length") : "0"))
-                            .withLocation(record.get("location"))
-                            .withMethod(record.get("method"))
-                            .withPage(record.get("page"))
-                            .withRegistration(record.get("registration"))
-                            .withSong(record.get("song"))
-                            .withStatus(Integer.parseInt(
-                                        !record.get("status").isEmpty() ? record.get("status") : "0"
-                            ))
-                            .withTs(record.get("ts"))
-                            .withUserId(record.get("userId"))
-                            .build();
-                            events.add(event);   
-                    }
-                    
-                } catch (FileNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                // return null;
-                return events;
-            }
-        }).flatMap(event -> event.stream()); 
+        return FileUtils.listFiles(rootDir, null, true)
+                .stream()
+                .map( t -> extractData.apply(t))
+                .flatMap(event -> event.stream());
            
     }
+
+    private static Function<File, List<EventData>> extractData = (t) ->{
+        List<EventData> events = new  ArrayList<>();
+        try (Reader in = new FileReader(t);) {
+            Iterable<CSVRecord> records = CSVFormat.EXCEL.withHeader().parse(in);
+            for (CSVRecord record : records) {
+                EventData event = new EventBuilder(Integer.parseInt(record.get("sessionId")))
+                    .withArtist(record.get("artist"))
+                    .withAuth(record.get("auth"))
+                    .withFirstName(record.get("firstName"))
+                    .withItemInSession(Integer.parseInt(
+                                !record.get("itemInSession").isEmpty() ? record.get("itemInSession") : "0"))
+                    .withGender(
+                        !record.get("gender").isEmpty() ? record.get("gender").charAt(0) : '-'
+                    )
+                    .withLastName(record.get("lastName"))
+                    .withLength(Double.parseDouble(
+                                !record.get("length").isEmpty() ? record.get("length") : "0"))
+                    .withLocation(record.get("location"))
+                    .withMethod(record.get("method"))
+                    .withPage(record.get("page"))
+                    .withRegistration(record.get("registration"))
+                    .withSong(record.get("song"))
+                    .withStatus(Integer.parseInt(
+                                !record.get("status").isEmpty() ? record.get("status") : "0"
+                    ))
+                    .withTs(record.get("ts"))
+                    .withUserId(record.get("userId"))
+                    .build();
+                    events.add(event);   
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return events;
+    };
 }
