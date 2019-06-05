@@ -44,7 +44,7 @@ public final class FileService {
                     .withItemInSession(Integer.parseInt(
                                 !record.get("itemInSession").isEmpty() ? record.get("itemInSession") : "0"))
                     .withGender(
-                        !record.get("gender").isEmpty() ? record.get("gender").charAt(0) : '-'
+                        !record.get("gender").isEmpty() ? record.get("gender") : "-"
                     )
                     .withLastName(record.get("lastName"))
                     .withLength(Double.parseDouble(

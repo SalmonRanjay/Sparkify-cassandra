@@ -16,14 +16,11 @@ public class App
     {
         System.out.println( "Hello World!" );
         System.out.println();
-        CassandraService.loadTable1(new EventData());
-        CassandraService.loadTable1(new EventData());
-        FileService.readCSVFile(new File("./data")).forEach(item ->{
-            
-        });
-        // FileService.readCSVFile(new File("./data"))
-        // .forEach((event) ->{
-        //     System.out.println(event.toString());
-        // });
+       
+        FileService.readCSVFile(new File("./data"))
+            .forEach(item -> CassandraService.createBoundStatement.accept(item));
+
+        CassandraService.closeResources();
+        
     }
 }

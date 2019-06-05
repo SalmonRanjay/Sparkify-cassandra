@@ -2,6 +2,9 @@ package com.ranjay.cassandra.models;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.mapping.annotations.ClusteringColumn;
+import com.datastax.driver.mapping.annotations.PartitionKey;
+import com.datastax.driver.mapping.annotations.Table;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,11 +12,15 @@ import lombok.Setter;
 @Getter
 @Setter
 
+@Table(
+    name = "sessionevents",
+    keyspace = "events")
 public class EventData{
     private String artist;
     private String auth;
     private String firstName;
-    private char gender;
+    private String gender;
+    // @ClusteringColumn(value = 0)
     private int itemInSession;
     private String lastName;
     private double length;
@@ -22,6 +29,8 @@ public class EventData{
     private String method;
     private String page;
     private String registration;
+    
+    // @ClusteringColumn(value = 1)
     private int sessionId;
     private String song;
     private int status;
@@ -66,7 +75,7 @@ public class EventData{
         private String artist;
         private String auth;
         private String firstName;
-        private char gender;
+        private String gender;
         private int itemInSession;
         private String lastName;
         private double length;
@@ -100,7 +109,7 @@ public class EventData{
             return this;
         }
 
-        public EventBuilder withGender(char gender){
+        public EventBuilder withGender(String gender){
             this.gender = gender;
             return this;
         }
