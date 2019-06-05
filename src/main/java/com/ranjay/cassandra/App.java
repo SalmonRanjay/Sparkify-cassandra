@@ -17,8 +17,10 @@ public class App
         System.out.println( "Hello World!" );
         System.out.println();
        
-        FileService.readCSVFile(new File("./data"))
-            .forEach(item -> CassandraService.createBoundStatement.accept(item));
+        // FileService.readCSVFile(new File("./data"))
+        //     .forEach(item -> CassandraService.mapEventPojoToCQLQuery.accept(item));
+        // FileService.readCSVFile(new File("./data"))
+        //     .forEach(item -> CassandraService.createBoundedStatement.accept(item , ""));
 
         CassandraService.closeResources();
         

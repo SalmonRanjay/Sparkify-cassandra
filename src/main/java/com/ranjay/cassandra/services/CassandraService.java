@@ -1,7 +1,10 @@
 package com.ranjay.cassandra.services;
 
+import java.util.function.BiConsumer;
+
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.QueryTrace.Event;
@@ -18,6 +21,7 @@ public final class CassandraService {
     private static MappingManager manager;
     private static BatchStatement batchStatement;
     private static Mapper<EventData> mapper;
+    private static PreparedStatement statement;
 
     static {
         System.out.println("Private Constructor called");
@@ -27,18 +31,23 @@ public final class CassandraService {
         session = cluster.connect();
         // createKeySpace();
         useKeySpace();
-        createTable(" PRIMARY KEY(itemInSession,sessionId) ");
+        // createTable(" PRIMARY KEY(itemInSession,sessionId) ");
+        initTables();
         manager = new MappingManager(session);
         mapper = manager.mapper(EventData.class);
+        batchStatement = new BatchStatement();
         
     }
 
     private CassandraService() {
+    };
 
+    public static BiConsumer<EventData,String> createBoundedStatement = (event, cqlInsert) ->{
+         batchStatement.add(event.createBoundStatement(createPreparedStatement(cqlInsert)));
     };
-    public static Consumer<EventData> createBoundStatement = (event) -> {
-        mapper.save(event);
-    };
+    public static void executeBatchStatment(){
+        session.execute(batchStatement);
+    }
 
     public static void createKeySpace() {
         String query = "CREATE KEYSPACE events WITH replication "
@@ -46,25 +55,27 @@ public final class CassandraService {
         session.execute(query);
         
     }
-    private static void createPreparedStatement(){
-         // batchStatement = new BatchStatement();
-        // String sqlStatement = "INSERT INTO sessionQuery "
-        // +"(artist,auth,firstName,"
-        // +"gender,itemInSession,lastName,"
-        // +"length,level,location,"
-        // +"method,page,registration,"
-        // +"sessionId,song,status,"
-        // +"ts,userId)"
-        // +"values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+    private static PreparedStatement createPreparedStatement(String insertText){
+        
+         StringBuilder sqlStatement = new StringBuilder();
+         sqlStatement.append(insertText)
+         .append(" (artist,auth,firstName,")
+         .append("gender,itemInSession,lastName,")
+         .append("length,level,location,")
+         .append("method,page,registration,")
+         .append("sessionId,song,status,")
+         .append("ts,userId)")
+         .append("values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
+        return session.prepare(sqlStatement.toString());
     }
     public static void closeResources() {
         cluster.close();
         session.close();
     }
 
-    private static void createTable(String primaryKey){
+    private static void createTable(String createStatement,String primaryKey){
         StringBuilder queryBuilder = new StringBuilder();
-        queryBuilder.append("CREATE TABLE IF NOT EXISTS sessionEvents(");
+        queryBuilder.append(createStatement);
         queryBuilder.append(" artist TEXT,auth TEXT, firstName TEXT,gender TEXT, itemInSession int,");
         queryBuilder.append("lastName TEXT,length double,level TEXT,location TEXT,method TEXT,");
         queryBuilder.append("page TEXT, registration TEXT, sessionId int, song TEXT, status int, ts TEXT, userId TEXT,");
@@ -72,6 +83,32 @@ public final class CassandraService {
         queryBuilder.append(");");
         session.execute(queryBuilder.toString());
     }
+
+    public static void dropTables(){
+        session.execute("DROP TABLE IF EXISTS events.sessionEvents");
+        session.execute("DROP TABLE IF EXISTS events.userSessions");
+        session.execute("DROP TABLE IF EXISTS events.songSession");
+    }
+
+    private static void initTables(){
+        String sessionTable = "CREATE TABLE IF NOT EXISTS sessionEvents(";
+        String sessionKey   = " PRIMARY KEY(itemInSession,sessionId) ";
+
+        String userSession = "CREATE TABLE IF NOT EXISTS userSessions(";
+        String userKey = " PRIMARY KEY((userId,sessionId),itemInSession,firstName,lastName ) ";
+
+        String songSession = "CREATE TABLE IF NOT EXISTS songSession(";
+        String songKey = " PRIMARY KEY((firstName,lastName),song) ";
+
+        createTable(sessionTable, sessionKey);
+        createTable(userSession, userKey);
+        createTable(songSession, songKey);
+    };
+
+    public static Consumer<EventData> mapEventPojoToCQLQuery = (event)->{
+        mapper.save(event);
+    };
+
     private static void useKeySpace(){
         session.execute(" USE events ");
     }
