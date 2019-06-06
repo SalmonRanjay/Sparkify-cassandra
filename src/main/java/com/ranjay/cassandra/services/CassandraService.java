@@ -26,7 +26,7 @@ public final class CassandraService {
     private static List<BoundStatement>  boundList = new ArrayList<>();
 
     static {
-        System.out.println("Private Constructor called");
+       
         String serverIP = "127.0.0.1";
         String keyspace = "events";
         cluster = Cluster.builder().addContactPoint(serverIP).withProtocolVersion(ProtocolVersion.V3).build();
