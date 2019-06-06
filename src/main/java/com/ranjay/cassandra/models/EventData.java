@@ -35,7 +35,7 @@ public class EventData{
     private String song;
     private int status;
     private String ts;
-    private String userId;
+    private int userId;
 
     public BoundStatement createBoundStatement(PreparedStatement statement){
         BoundStatement bound = statement.bind(this.getArtist(),this.getAuth(),this.getFirstName()
@@ -88,7 +88,7 @@ public class EventData{
         private String song;
         private int status;
         private String ts;
-        private String userId;
+        private int userId;
 
         public EventBuilder(int sessionId){
             this.sessionId = sessionId;
@@ -169,7 +169,7 @@ public class EventData{
             return this;
         }
 
-        public EventBuilder withUserId(String userId){
+        public EventBuilder withUserId(int userId){
             this.userId = userId;
             return this;
         }

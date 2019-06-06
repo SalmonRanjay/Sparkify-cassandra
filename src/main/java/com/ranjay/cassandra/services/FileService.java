@@ -58,7 +58,7 @@ public final class FileService {
                                 !record.get("status").isEmpty() ? record.get("status") : "0"
                     ))
                     .withTs(record.get("ts"))
-                    .withUserId(record.get("userId"))
+                    .withUserId(!record.get("userId").isEmpty() ? Integer.parseInt(record.get("userId")): 00)
                     .build();
                     events.add(event);   
             }
