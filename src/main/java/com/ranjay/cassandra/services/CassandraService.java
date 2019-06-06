@@ -24,6 +24,7 @@ public final class CassandraService {
     private static MappingManager manager;
     private static Mapper<EventData> mapper;
     private static List<BoundStatement>  boundList = new ArrayList<>();
+
     static {
         System.out.println("Private Constructor called");
         String serverIP = "127.0.0.1";
@@ -31,32 +32,31 @@ public final class CassandraService {
         cluster = Cluster.builder().addContactPoint(serverIP).withProtocolVersion(ProtocolVersion.V3).build();
         session = cluster.connect();
         createKeySpace();
-        useKeySpace();
-       
+        useKeySpace();   
         initTables();
         manager = new MappingManager(session);
-        mapper = manager.mapper(EventData.class);
-       
-        
-        
+        mapper = manager.mapper(EventData.class); 
     }
 
     private CassandraService() {
     };
 
     public static BiConsumer<EventData,String> createBoundedStatement = (event, cqlInsert) ->{
-      
         boundList.add(event.createBoundStatement(createPreparedStatement(cqlInsert)));     
     };
-    public static void executeBatchStatment(){
-        // partition list into smaller list
+
+    /**
+     * Create microbatches of size 100 from a List of BoundStatements lists
+     */
+    public static void executeBatchStatment(){ 
         List<List<BoundStatement>> output = ListUtils.partition(boundList, 100);
         for (List<BoundStatement> boundedStatement : output) {
             BatchStatement microBatches = new BatchStatement();
             microBatches.addAll(boundedStatement);
-            session.execute(microBatches);
+            if(session.execute(microBatches) != null)
+                System.out.println("Successfully Inserted Batch of size: " + microBatches.size());
+            
         }
-        // session.execute(batchStatement);
     }
 
     public static void createKeySpace() {
@@ -65,6 +65,14 @@ public final class CassandraService {
         session.execute(query);
         
     }
+
+    /**
+     * Creates a cassandara prepared statement 
+     * using stringBuilder.
+     * @param insertText insert statement to pass to the string builder function
+     *                      
+     * @return Returns a prepared statement 
+     */
     private static PreparedStatement createPreparedStatement(String insertText){
         
          StringBuilder sqlStatement = new StringBuilder();
@@ -78,19 +86,30 @@ public final class CassandraService {
          .append("values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
         return session.prepare(sqlStatement.toString());
     }
+
+    /**
+     * Close Cassandra resources
+     */
     public static void closeResources() {
         cluster.close();
         session.close();
     }
 
-    private static void createTable(String createStatement,String primaryKey){
+    /**
+     * Creates Database Tables 
+     * @param createStatement String representing Table Name
+     * @param primaryKey Strring Representing Primary key consisiting of partition key and clustering key
+     */
+    private static void createTable(String createStatement,String primaryKey, String clusteringOrder){
         StringBuilder queryBuilder = new StringBuilder();
         queryBuilder.append(createStatement);
         queryBuilder.append(" artist TEXT,auth TEXT, firstName TEXT,gender TEXT, itemInSession int,");
         queryBuilder.append("lastName TEXT,length double,level TEXT,location TEXT,method TEXT,");
         queryBuilder.append("page TEXT, registration TEXT, sessionId int, song TEXT, status int, ts TEXT, userId int,");
         queryBuilder.append(primaryKey);
-        queryBuilder.append(");");
+        queryBuilder.append(") ");
+        queryBuilder.append(clusteringOrder);
+        queryBuilder.append(";");
         session.execute(queryBuilder.toString());
     }
 
@@ -106,13 +125,14 @@ public final class CassandraService {
 
         String userSession = "CREATE TABLE IF NOT EXISTS userSessions(";
         String userKey = " PRIMARY KEY((userId,sessionId),itemInSession,firstName,lastName ) ";
+        String clusteringOrder = "WITH CLUSTERING ORDER BY (itemInSession DESC, firstName ASC, lastName ASC) ";
 
         String songSession = "CREATE TABLE IF NOT EXISTS songSession(";
-        String songKey = " PRIMARY KEY(song) ";
+        String songKey = " PRIMARY KEY(sessionId,song) ";
 
-        createTable(sessionTable, sessionKey);
-        createTable(userSession, userKey);
-        createTable(songSession, songKey);
+        createTable(sessionTable, sessionKey, "");
+        createTable(userSession, userKey, clusteringOrder);
+        createTable(songSession, songKey,"");
     };
 
     public static Consumer<EventData> mapEventPojoToCQLQuery = (event)->{

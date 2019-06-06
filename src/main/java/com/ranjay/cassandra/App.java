@@ -17,7 +17,7 @@ public class App {
 
                
                 FileService.readCSVFile(new File("./data")).forEach(item -> CassandraService.createBoundedStatement
-                                .accept(item, "INSERT INTO sessionevents "));
+                                .accept(item, "INSERT INTO sessionevents"));
                 CassandraService.executeBatchStatment();
 
                 FileService.readCSVFile(new File("./data")).forEach(item -> CassandraService.createBoundedStatement
@@ -27,9 +27,13 @@ public class App {
                 FileService.readCSVFile(new File("./data")).forEach(item -> CassandraService.createBoundedStatement
                                 .accept(item, "INSERT INTO songsession"));
                 CassandraService.executeBatchStatment();
-               
 
+                // CassandraService.dropTables();
+        
                 CassandraService.closeResources();
+
+                System.out.println("KEYSPACE: events");
+                System.out.println("TABLES: sessionevents, usersessions, songsession");
 
         }
 }

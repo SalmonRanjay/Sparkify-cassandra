@@ -23,7 +23,13 @@ public final class FileService {
     };
 
    
-
+    /**
+     * Returns a stream of event data pojo, by scanning through a directory
+     * using the apache commons <code> FileUtils.listFiles <code> then create a stream
+     * and flattent it using <code>flatMap<code>
+     * @param rootDir
+     * @return Stream of EventData Pojo 
+     */
     public static Stream<EventData> readCSVFile(File rootDir) {
         return FileUtils.listFiles(rootDir, null, true)
                 .stream()
@@ -32,6 +38,13 @@ public final class FileService {
            
     }
 
+    /**
+     * Returns a list of EventData pojo by parsing a csv file using
+     * <code>CSVFORMAT</code> from the apache commons csv library
+     * 
+     * @param t current directory file
+     * @return  List of event data
+     */
     private static Function<File, List<EventData>> extractData = (t) ->{
         List<EventData> events = new  ArrayList<>();
         try (Reader in = new FileReader(t);) {
