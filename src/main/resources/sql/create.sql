@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS sessionEvents(
     registration TEXT,
     sessionId int,
     song TEXT,
-    status INTEGER,
+    status int,
     ts TEXT,
-    userId TEXT,
+    userId int,
     PRIMARY KEY(itemInSession,sessionId)
 );
