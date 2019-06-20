@@ -2,8 +2,6 @@ package com.ranjay.cassandra.models;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.mapping.annotations.ClusteringColumn;
-import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
 
 import lombok.Getter;
@@ -46,6 +44,32 @@ public class EventData{
                                 this.getTs(),this.getUserId());
         return bound;
     }
+    public BoundStatement createSessionEventsTableBoundStatement(PreparedStatement statement){
+        BoundStatement bound = statement.bind(
+                this.getArtist(),this.getItemInSession(),
+                this.getLength(),this.getSong(),
+                this.getSessionId());
+        return bound;
+    }
+
+    
+    public BoundStatement userSessionTableBoundStatement(PreparedStatement statement){
+        BoundStatement bound = statement.bind(
+                this.getArtist(),this.getFirstName(),
+                this.getLastName(),this.getItemInSession(),
+                this.getSessionId(),this.getSong());
+        return bound;
+    }
+
+    public BoundStatement songSessionTableBoundStatement(PreparedStatement statement){
+        BoundStatement bound = statement.bind(
+            this.getFirstName(),this.getLastName(),
+            this.getPage(),this.getSong());
+      
+
+        return bound;
+    }
+
 
     @Override
     public String toString() {
@@ -124,7 +148,7 @@ public class EventData{
             return this;
         }
 
-        public EventBuilder withLength(double d){
+        public EventBuilder withLength(double length){
             this.length = length;
             return this;
         }

@@ -3,6 +3,9 @@ package com.ranjay.cassandra;
 import java.io.File;
 
 import com.ranjay.cassandra.models.EventData;
+import com.ranjay.cassandra.models.SessionEvents;
+import com.ranjay.cassandra.models.SongSession;
+import com.ranjay.cassandra.models.UserSession;
 import com.ranjay.cassandra.services.CassandraService;
 import com.ranjay.cassandra.services.FileService;
 
@@ -11,22 +14,29 @@ import com.ranjay.cassandra.services.FileService;
  *
  */
 public class App {
+
         public static void main(String[] args) {
                
                 System.out.println();
 
                
-                FileService.readCSVFile(new File("./data")).forEach(item -> CassandraService.createBoundedStatement
-                                .accept(item, "INSERT INTO sessionevents"));
-                CassandraService.executeBatchStatment();
+                // FileService.readCSVFile(new File("./data"))
+                // .map((item) -> new SessionEvents(item))
+                // .forEach(item -> CassandraService
+                //         .mapSessionEventPojoToCQLQuery.accept(item));
+                
 
-                FileService.readCSVFile(new File("./data")).forEach(item -> CassandraService.createBoundedStatement
-                                .accept(item, "INSERT INTO usersessions"));
-                CassandraService.executeBatchStatment();
+                FileService.readCSVFile(new File("./data"))
+                                .map( (item) -> new UserSession(item))
+                                .forEach(item -> CassandraService
+                                        .mapUserEventPojoToCQLQuery.accept(item));
+                
 
-                FileService.readCSVFile(new File("./data")).forEach(item -> CassandraService.createBoundedStatement
-                                .accept(item, "INSERT INTO songsession"));
-                CassandraService.executeBatchStatment();
+                // FileService.readCSVFile(new File("./data"))
+                //                 .map((item) ->  new SongSession(item))
+                //                 .forEach(item -> CassandraService
+                //                         .mapSongEventPojoToCQLQuery.accept(item));
+                
 
                 // CassandraService.dropTables();
         
