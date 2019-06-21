@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(
-    name = "songsession",
+    name = "userSessions",
     keyspace = "events")
 public class UserSession{
     private String artist;
