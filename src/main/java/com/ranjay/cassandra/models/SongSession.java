@@ -8,18 +8,22 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(
-    name = "usersessions",
+    name = "songSession",
     keyspace = "events")
 public class SongSession{
     private String firstName;
     private String lastName;
-    private String page;
+    // private String page;
     private String song;
+    private int userId;
+    private int sessionId;
 
     public SongSession(EventData data){
         this.firstName = data.getFirstName();
         this.lastName = data.getLastName();
-        this.page = data.getPage();
+        // this.page = data.getPage();
+        this.userId = data.getUserId();
         this.song = data.getSong();
+        this.sessionId = data.getSessionId();
     }
 }
